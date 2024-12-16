@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from accounts import constants, decorators
 from institutes.forms import manageInstituteTypeForm, manageInstituteForm, manageInstituteInstTypeForm, manageInstRAForm, manageRegistrationAuthorityForm
-from institutes.models import Institute_type, Institute_Details, Institute_Inst_type
+from institutes.models import Institute_type, Institute_Details, Institute_Inst_type, Registration_Authority
 from django.db.models import Q
 from django.contrib import messages
 
@@ -214,3 +214,107 @@ def manage_inst_del_fn(request, inst_id):
     institute_inst = Institute_Details.objects.get(id=inst_id)
     institute_inst.delete()
     return redirect("manage_inst_ins")
+
+
+@login_required(login_url="login")
+@decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
+def manage_ra_ins_fn(request):
+    """
+    Create and list Registration Authorities
+    """
+    if request.method == "POST":
+        manage_ra_form = manageRegistrationAuthorityForm(request.POST)
+        if manage_ra_form.is_valid():
+            manage_ra_save = manage_ra_form.save(commit=False)
+            manage_ra_save.created_by = request.user
+            manage_ra_save.updated_by = request.user
+            manage_ra_save.save()
+            messages.success(request, 'Registration Authority added successfully')
+            return redirect("manage_ra_ins")
+        else:
+            print(manage_ra_form.errors)
+            for error_messages in manage_ra_form.errors.values():
+                for error_message in error_messages:
+                    messages.error(request, error_message)
+            return redirect("manage_ra_ins")
+
+    manage_ra_form = manageRegistrationAuthorityForm()
+    manage_ra_table_data = Registration_Authority.objects.filter(
+        Q(created_by=1) | Q(created_by=request.user)
+    )
+    
+    data = {
+        "manage_ra_form": manage_ra_form,
+        "manage_ra_table_data": manage_ra_table_data,
+    }
+    return render(request, "institutes/manage_ra.html", data)
+
+@login_required(login_url="login")
+@decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
+def manage_ra_upd_fn(request, ra_id):
+    """
+    Update a Registration Authority
+    """
+    ra_inst = Registration_Authority.objects.get(id=ra_id)
+    manage_ra_form = manageRegistrationAuthorityForm(instance=ra_inst)
+    
+    if request.method == "POST":
+        manage_ra_form = manageRegistrationAuthorityForm(
+            request.POST, instance=ra_inst
+        )
+        if manage_ra_form.is_valid():
+            manage_ra_save = manage_ra_form.save(commit=False)
+            manage_ra_save.updated_by = request.user
+            manage_ra_save.save()
+            messages.success(request, "Updated Registration Authority successfully!")
+            return redirect("manage_ra_ins")
+        else:
+            for field_name, errors in manage_ra_form.errors.items():
+                for error_message in errors:
+                    print(error_message)
+                    messages.error(request, f"{error_message}")
+            return redirect("manage_ra_ins")
+
+    manage_ra_table_data = Registration_Authority.objects.filter(
+        Q(created_by=1) | Q(created_by=request.user)
+    )
+    
+    data = {
+        "manage_ra_form": manage_ra_form,
+        "manage_ra_table_data": manage_ra_table_data,
+    }
+    return render(request, "institutes/manage_ra.html", data)
+
+@login_required(login_url="login")
+@decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
+def manage_ra_del_fn(request, ra_id):
+    """
+    Delete a Registration Authority
+    """
+    ra_inst = Registration_Authority.objects.get(id=ra_id)
+    ra_inst.delete()
+    messages.success(request, "Registration Authority deleted successfully!")
+    return redirect("manage_ra_ins")
+
+@login_required(login_url="login")
+@decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
+def manage_ra_view_fn(request):
+    """
+    View all Registration Authorities with search functionality
+    """
+    search_query = request.GET.get('search', '')
+    
+    manage_ra_table_data = Registration_Authority.objects.filter(
+        Q(created_by=1) | Q(created_by=request.user)
+    )
+    
+    if search_query:
+        manage_ra_table_data = manage_ra_table_data.filter(
+            Q(ra_name__icontains=search_query)
+        )
+    
+    data = {
+        "manage_ra_table_data": manage_ra_table_data,
+        "search_query": search_query
+    }
+    return render(request, "institutes/manage_ra.html", data)

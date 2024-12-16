@@ -427,6 +427,30 @@
                     </a>
                   </li>
                 </ul>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    {% if request.path == "/institutes/manage-ra-ins" %}
+                    <a href="{% url 'manage_ra_ins' %}" class="nav-link active">
+                    {% else %}
+                    <a href="{% url 'manage_ra_ins' %}" class="nav-link">
+                    {% endif %}
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Add Registration Authority</p>
+                    </a>
+                  </li>
+                </ul>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    {% if request.path == "/institutes/manage-ra-view" %}
+                    <a href="{% url 'manage_ra_view' %}" class="nav-link active">
+                    {% else %}
+                    <a href="{% url 'manage_ra_view' %}" class="nav-link">
+                    {% endif %}
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>View Registration Authorities</p>
+                    </a>
+                  </li>
+                </ul>
               </li>
             </ul>
           </nav>
