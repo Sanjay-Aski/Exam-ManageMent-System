@@ -43,9 +43,10 @@ def login_user(request):
     if request.user.is_authenticated == True:
         role = request.session['role']
         groups = request.user.groups.values_list("name", flat=True).first()
+        print(role in groups)
         print(groups)
         if role in groups and role == "InstituteAdmin":
-            return redirect("super_admin_dashboard")
+            return redirect("institute_admin_dashboard")
         elif role in groups and role == "Chancellor":
             return redirect("super_admin_dashboard")
         elif role in groups and role == "ViceChancellor":
@@ -88,7 +89,7 @@ def login_user(request):
                             "name", flat=True)
                         print(groups)
                         if role in groups and role == "InstituteAdmin":
-                            return redirect("super_admin_dashboard")
+                            return redirect("institute_admin_dashboard")
                         elif role in groups and role == "Chancellor":
                             return redirect("super_admin_dashboard")
                         elif role in groups and role == "ViceChancellor":
