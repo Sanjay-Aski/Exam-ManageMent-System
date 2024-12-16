@@ -1,0 +1,190 @@
+{% extends '../dashboards/instituteadmin/instituteadmin_base.html' %}
+{% load static %}
+{% block content %}
+<script>
+  function delete_inst(inst_id, inst_name) {
+    if (
+      confirm('Kindly confirm deletion of the Institute : ' + inst_name) == true
+    ) {
+      window.location.href = '/institutes/manage-inst-del/' + inst_id;
+    }
+  }
+</script>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard v1</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 float-right">
+          <!--Load messages-->
+          {% include 'alerts.html'%}
+      </div>
+  </div> 
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- SELECT2 EXAMPLE -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Manage Institute</h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+            </div>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body">
+            <table id="example2" class="table table-bordered table-striped">
+              <thead>
+              <tr>
+                <th>Institute Id</th>
+                <th>Institute Name</th>
+                <th>Institute Address</th>
+                <th>Pin code</th>
+                <th>University/Board ID</th>
+                <th>Update</th>
+                <th>Delete</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for inst in manage_inst_table_data %} 
+                <tr>
+                  <td>{{inst.id}}</td>
+                  <td>{{inst.inst_name}}</td>
+                  <td>{{inst.inst_address}}</td>
+                  <td>{{inst.inst_pincode}}</td>
+                  <td>{{inst.uni_id}}</td>
+                  {% if inst.created_by.username == request.user.username %}
+                <td>
+                  <a href="{% url 'manage_inst_upd' inst.id %}"
+                    ><button type="button" class="btn btn-block btn-primary">
+                      Edit
+                    </button></a
+                  >
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn btn-block btn-danger"
+                    onclick="delete_inst({{inst.id}},'{{inst.inst_name}}');"
+                  >
+                    Delete
+                  </button>
+                </td>
+                {% else %}
+                <td></td>
+                <td></td>
+                {% endif %}
+                  
+                  {% comment %} <td><a href="{% url 'manage_university_upd' university.id %}"><button type="button" class="btn btn-block btn-primary">Edit</button></a></td> {% endcomment %}
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Institute Id</th>
+                  <th>Institute Name</th>
+                  <th>Institute Address</th>
+                  <th>Pin code</th>
+                  <th>University/Board ID</th>
+                  <th>Update</th>
+                  <th>Delete</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <div class="card card-default">
+          <div class="card-header">
+            {% if request.path == "/institutes/manage-inst-ins" %}
+            <h3 class="card-title">Create Institute </h3>
+            {% else %}
+            <h3 class="card-title">Update Institute </h3>
+            {% endif %}
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+            </div>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                {% if institute_created_flag == "false" or request.path != "/institutes/manage-inst-ins" %}                
+                <form method="POST">
+                  {% csrf_token %}
+                  <div class="card-body">
+                    <div class="form-group">
+                      {{manage_inst_form}}
+                    </div>
+                  </div>
+                  <!-- /.card-body -->
+
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </div>
+                </form>
+                {% else %}
+                <h2>Institute Already Created</h2>
+                {% endif %}
+                
+              </div>
+            </div>
+            <!-- /.row -->
+          </div>
+
+          <!-- /.card-body -->
+          <div class="card-footer">
+          </div>
+        </div>
+        <!-- /.card -->
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  <!-- jQuery -->
+  <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+  <!-- jQuery UI 1.11.4 -->
+  <script src="{% static 'plugins/jquery-ui/jquery-ui.min.js' %}"></script>
+  <script>
+    $(function () {
+      $("#example2").DataTable({
+        "responsive": true, "lengthChange": false, "autoWidth": false,
+        "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+      }).buttons().container().appendTo('#example2_wrapper .col-md-6:eq(0)');
+
+      $('#example1').DataTable({
+        "paging": true,
+        "lengthChange": false,
+        "searching": false,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false,
+        "responsive": true,
+      });
+    });
+  </script>
+
+{% endblock %}
+  

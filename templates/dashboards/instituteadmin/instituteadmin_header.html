@@ -390,7 +390,44 @@
                 </ul>
     
               </li>
-
+              <!--Institutes-->
+              <li class="nav-item">
+                {% if request.path == "/institutes/manage-institute-ins" or request.path == "/institutes/manage-inst-type-ins" %}
+                <a href="{% url 'manage_inst_ins' %}" class="nav-link active">
+                {% else %}
+                <a href="{% url 'manage_inst_ins' %}" class="nav-link">
+                {% endif %}
+                  <i class="nav-icon fas fa-th"></i>
+                  <p>
+                    Institute
+                    <i class="right fas fa-angle-left"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    {% if request.path == "/institutes/manage-institute-ins" %}
+                    <a href="{% url 'manage_inst_ins' %}" class="nav-link active">
+                    {% else %}
+                    <a href="{% url 'manage_inst_ins' %}" class="nav-link">
+                    {% endif %}
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Add Institute</p>
+                    </a>
+                  </li>
+                </ul>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    {% if request.path == "/institutes/manage-inst-with-inst-type-ins" %}
+                    <a href="{% url 'manage_inst_with_inst_type_ins_fn' %}" class="nav-link active">
+                    {% else %}
+                    <a href="{% url 'manage_inst_with_inst_type_ins_fn' %}" class="nav-link">
+                    {% endif %}
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Asso Institute & Its Type</p>
+                    </a>
+                  </li>
+                </ul>
+              </li>
             </ul>
           </nav>
           <!-- /.sidebar-menu -->

@@ -1,3 +1,5 @@
+# admin.py
 from django.contrib import admin
+from .models import University_Details  # Import your model
 
-# Register your models here.
+admin.site.register(University_Details)  # Register your model
