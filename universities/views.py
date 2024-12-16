@@ -149,18 +149,22 @@ def manage_university_sel_fn(request):
         .values()
         .distinct()
     )
+    print(university_list)
     manage_select_university_form.fields["university"].choices = []
     manage_select_university_form.fields["university"].choices.insert(
         0, ("", "Select")
     )
+    manage_select_university_form.fields["university"].choices.insert(
+        0, ("", "Hello")
+    )
 
+    university_choices = [("", "Select")]
     for university in university_list:
-        print(university.get("id"), university.get("university_name"))
-        id = university.get("id")
-        university_name = university.get("university_name")
-        manage_select_university_form.fields["university"].choices.append(
-            (id, university_name)
-        )
+        university_choices.append((university.get("id"), university.get("university_name")))
+    
+    manage_select_university_form.fields["university"].choices = university_choices
+
+    print("Hii",manage_select_university_form.fields["university"].choices)
     selected_university = ""
     if user_university.objects.filter(user=request.user).exists():
         selected_university = user_university.objects.get(
