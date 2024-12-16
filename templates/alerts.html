@@ -1,0 +1,33 @@
+{%load static%}
+
+{% if messages %} {% for message in messages %}
+    {% if message.tags == 'success' %}
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <script src={% static 'dist/js/jquery.toast.js'%}></script>
+        <script>
+            var myToast=$.toast({
+                heading: '{{message}}',
+                bgColor: '#1E5128',
+                showHideTransition: 'slide',
+                icon: 'success',
+                position:'top-right'
+                
+            })
+        </script>
+    {%elif message.tags == 'danger'%}
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <script src={% static 'dist/js/jquery.toast.js'%}></script>
+        <script>
+            var myToast=$.toast({
+                heading: '{{message}}',
+                bgColor: '#950101',
+                icon: 'error',
+                position:'top-right'
+                
+            })
+        </script>
+        
+    {%endif%}
+
+
+{% endfor %} {% endif %}
