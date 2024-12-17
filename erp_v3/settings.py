@@ -140,9 +140,20 @@ MESSAGE_TAGS = {
 }
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'joseph.richard1988@gmail.com'
-EMAIL_HOST_PASSWORD = 'Xf0rm3r5@'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'joseph.richard1988@gmail.com'
+# EMAIL_HOST_PASSWORD = 'Xf0rm3r5@'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587  
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = 'sanjayaski6553@gmail.com'  
+EMAIL_HOST_PASSWORD = 'agzwoeqieqxvyatu'  
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'

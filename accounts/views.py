@@ -1,9 +1,13 @@
+import random
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.mail import send_mail
+
 
 # Create your views here.
 def register_user(request):
@@ -16,10 +20,10 @@ def register_user(request):
         conf_passwd = request.POST.get("conf_passwd")
         if passwd == conf_passwd:
             if User.objects.filter(username=username).exists():
-                print("Username Taken")
+               # print("Username Taken")
                 messages.info(request, "Username Taken")
             elif User.objects.filter(email=email_id).exists():
-                print("Email Taken")
+               # print("Email Taken")
                 messages.info(request, "Email Taken")
             else:
                 user = User.objects.create_user(
@@ -34,7 +38,7 @@ def register_user(request):
                 user.groups.add(user_group)
                 return redirect("login")
         else:
-            print("password doesnt match")
+          #  print("password doesnt match")
             messages.info(request, "Password Doesn't Match!!")
     return render(request, "accounts/register.html")
 
@@ -43,8 +47,8 @@ def login_user(request):
     if request.user.is_authenticated == True:
         role = request.session['role']
         groups = request.user.groups.values_list("name", flat=True).first()
-        print(role in groups)
-        print(groups)
+       # print(role in groups)
+       # print(groups)
         if role in groups and role == "InstituteAdmin":
             return redirect("institute_admin_dashboard")
         elif role in groups and role == "Chancellor":
@@ -113,7 +117,7 @@ def login_user(request):
                         elif role in groups and role == "Assistant":
                             return redirect("super_admin_dashboard")
                     else:
-                        print("hiii")
+                       # print("hiii")
                         return redirect("first_login_reset_password")
                         # return redirect("super_admin_dashboard")
                 else:
@@ -179,3 +183,95 @@ def first_login_reset_password(request):
             messages.info(request, "New Password and Confirm Password Doesn't Match!!")
 
     return render(request, "accounts/first_login_reset_password.html")
+
+
+def send_otp_email(request, otp):
+    try:
+        subject = "The OTP for Password Change"
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        message = f"Dear {username},\n\nThe OTP for password change is: {otp}.\n\nRegards,\nYour Team"
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+        send_mail(subject, message, from_email, recipient_list)
+        #print("Email sent successfully")
+        return "Email sent successfully!"
+    except Exception as e:
+        #print(f"Error sending email: {e}")
+        return f"Error sending email: {e}"
+
+
+def generate_otp():
+    otp = random.randint(100000, 99999999)
+    return otp
+def forgot_password(request):
+    if 'state' not in request.session:
+        request.session['state'] = 'email'  # Default state
+
+    #print(f"Current state: {request.session['state']}")
+
+    if request.method == "POST":
+        # State: Email
+        if request.session['state'] == 'email':
+            # Fetch input data and store in session
+            request.session['username'] = request.POST.get("username")
+            request.session['email'] = request.POST.get("email")
+            request.session['role'] = request.POST.get("role")
+
+            #print("Received -> Username:", request.session['username'],
+             #     "| Email:", request.session['email'], "| Role:", request.session['role'])
+
+            try:
+                user = User.objects.get(username=request.session['username'])
+
+                if user.email == request.session['email'] and user.groups.filter(name=request.session['role']).exists():
+                    request.session['sys_Otp'] = generate_otp()  # Generate OTP
+                    #print("Generated OTP:", request.session['sys_Otp'])
+
+                    send_otp_email(request, request.session['sys_Otp'])
+                    request.session['state'] = 'otp'  # Move to OTP state
+                    messages.success(request, "OTP sent to your email.")
+                else:
+                    messages.error(request, "Incorrect email or role.")
+            except User.DoesNotExist:
+                messages.error(request, "Invalid Username.")
+            except Exception as e:
+                messages.error(request, f"Error occurred: {e}")
+
+        # State: OTP Verification
+        elif request.session['state'] == 'otp':
+            user_otp = request.POST.get('otp')
+            print("Entered OTP:", user_otp, "| Expected OTP:", request.session.get('sys_Otp'))
+
+            if user_otp == str(request.session.get('sys_Otp')):
+                request.session['state'] = 'reset'  # Move to Reset State
+                messages.success(request, "OTP verified successfully.")
+            else:
+                messages.error(request, "Invalid OTP. Please try again.")
+
+        elif request.session['state'] == 'reset':
+            username_input = request.POST.get("username")
+            new_password = request.POST.get('new_psd')
+            confirm_password = request.POST.get('con_new_psd')
+
+            #print("Reset -> Username:", username_input, 
+             #     "| New Password:", new_password, "| Confirm Password:", confirm_password)
+
+            if username_input == request.session.get('username'):
+                if new_password == confirm_password:
+                    try:
+                        user = User.objects.get(username=request.session['username'])
+                        user.set_password(new_password)
+                        user.save()
+                        request.session.flush() 
+                        messages.success(request, "Password reset successfully!")
+                        return redirect('login')  
+                    except Exception as e:
+                        messages.error(request, f"Error updating password: {e}")
+                else:
+                    messages.error(request, "Passwords do not match.")
+            else:
+                messages.error(request, "Username mismatch.")
+
+    #print("Session Data:", dict(request.session))  
+    return render(request, "accounts/forgot_password.html")
