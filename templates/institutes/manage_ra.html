@@ -67,7 +67,7 @@
                 <th>Registration Authority Id</th>
                 <th>Registration Authority Name</th>
                 <th>Created By</th>
-                <th>Update</th>
+                {% comment %} <th>Update</th> {% endcomment %}
                 <th>Delete</th>
               </tr>
             </thead>
@@ -77,13 +77,13 @@
                 <td>{{ ra.id }}</td>
                 <td>{{ ra.ra_name }}</td>
                 <td>{{ra.created_by.username}}</td>
-                <td>
+                {% comment %} <td>
                   <a href="{% url 'manage_ra_upd' ra.id %}">
                     <button type="button" class="btn btn-block btn-primary">
                       Edit
                     </button>
                   </a>
-                </td>
+                </td> {% endcomment %}
                 <td>
                   <button
                     type="button"
@@ -101,7 +101,7 @@
                 <th>Registration Authority Id</th>
                 <th>Registration Authority Name</th>
                 <th>Created By</th>
-                <th>Update</th>
+                {% comment %} <th>Update</th> {% endcomment %}
                 <th>Delete</th>
               </tr>
             </tfoot>

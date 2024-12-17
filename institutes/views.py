@@ -249,41 +249,41 @@ def manage_ra_ins_fn(request):
     }
     return render(request, "institutes/manage_ra.html", data)
 
-@login_required(login_url="login")
-@decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
-def manage_ra_upd_fn(request, ra_id):
-    """
-    Update a Registration Authority
-    """
-    ra_inst = Registration_Authority.objects.get(id=ra_id)
-    manage_ra_form = manageRegistrationAuthorityForm(instance=ra_inst)
+# @login_required(login_url="login")
+# @decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
+# def manage_ra_upd_fn(request, ra_id):
+#     """
+#     Update a Registration Authority
+#     """
+#     ra_inst = Registration_Authority.objects.get(id=ra_id)
+#     manage_ra_form = manageRegistrationAuthorityForm(instance=ra_inst)
     
-    if request.method == "POST":
-        manage_ra_form = manageRegistrationAuthorityForm(
-            request.POST, instance=ra_inst
-        )
-        if manage_ra_form.is_valid():
-            manage_ra_save = manage_ra_form.save(commit=False)
-            manage_ra_save.updated_by = request.user
-            manage_ra_save.save()
-            messages.success(request, "Updated Registration Authority successfully!")
-            return redirect("manage_ra_ins")
-        else:
-            for field_name, errors in manage_ra_form.errors.items():
-                for error_message in errors:
-                    print(error_message)
-                    messages.error(request, f"{error_message}")
-            return redirect("manage_ra_ins")
+#     if request.method == "POST":
+#         manage_ra_form = manageRegistrationAuthorityForm(
+#             request.POST, instance=ra_inst
+#         )
+#         if manage_ra_form.is_valid():
+#             manage_ra_save = manage_ra_form.save(commit=False)
+#             manage_ra_save.updated_by = request.user
+#             manage_ra_save.save()
+#             messages.success(request, "Updated Registration Authority successfully!")
+#             return redirect("manage_ra_ins")
+#         else:
+#             for field_name, errors in manage_ra_form.errors.items():
+#                 for error_message in errors:
+#                     print(error_message)
+#                     messages.error(request, f"{error_message}")
+#             return redirect("manage_ra_ins")
 
-    manage_ra_table_data = Registration_Authority.objects.filter(
-        Q(created_by=1) | Q(created_by=request.user)
-    )
+#     manage_ra_table_data = Registration_Authority.objects.filter(
+#         Q(created_by=1) | Q(created_by=request.user)
+#     )
     
-    data = {
-        "manage_ra_form": manage_ra_form,
-        "manage_ra_table_data": manage_ra_table_data,
-    }
-    return render(request, "institutes/manage_ra.html", data)
+#     data = {
+#         "manage_ra_form": manage_ra_form,
+#         "manage_ra_table_data": manage_ra_table_data,
+#     }
+#     return render(request, "institutes/manage_ra.html", data)
 
 @login_required(login_url="login")
 @decorators.check_user_able_to_see_page(constants.Group.InstituteAdmin)
