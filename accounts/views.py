@@ -1,5 +1,6 @@
 import random
 from django.conf import settings
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
@@ -192,44 +193,40 @@ def send_otp_email(request, otp):
         email = request.POST.get("email")
         message = f"Dear {username},\n\nThe OTP for password change is: {otp}.\n\nRegards,\nYour Team"
         from_email = settings.EMAIL_HOST_USER
-        recipient_list = [email]
+        recipient_list = [request.session['email']]
         send_mail(subject, message, from_email, recipient_list)
-        #print("Email sent successfully")
+        print("Email sent successfully")
         return "Email sent successfully!"
     except Exception as e:
-        #print(f"Error sending email: {e}")
+        print(f"Error sending email: {e}")
         return f"Error sending email: {e}"
 
 
 def generate_otp():
     otp = random.randint(100000, 99999999)
+    # print(otp)
     return otp
-def forgot_password(request):
-    if 'state' not in request.session:
-        request.session['state'] = 'email'  # Default state
 
-    #print(f"Current state: {request.session['state']}")
+def forgot_password(request):
+    if 'state' not in request.session or request.session['state'] == 'email':
+        request.session['state'] = 'email'  
+   
+    if request.method == "GET":
+        if request.session['state'] != 'email':
+            request.session['state'] = 'email'
+            return redirect('forgot_password')  
 
     if request.method == "POST":
-        # State: Email
         if request.session['state'] == 'email':
-            # Fetch input data and store in session
             request.session['username'] = request.POST.get("username")
             request.session['email'] = request.POST.get("email")
             request.session['role'] = request.POST.get("role")
-
-            #print("Received -> Username:", request.session['username'],
-             #     "| Email:", request.session['email'], "| Role:", request.session['role'])
-
             try:
                 user = User.objects.get(username=request.session['username'])
-
                 if user.email == request.session['email'] and user.groups.filter(name=request.session['role']).exists():
-                    request.session['sys_Otp'] = generate_otp()  # Generate OTP
-                    #print("Generated OTP:", request.session['sys_Otp'])
-
+                    request.session['sys_Otp'] = generate_otp()
                     send_otp_email(request, request.session['sys_Otp'])
-                    request.session['state'] = 'otp'  # Move to OTP state
+                    request.session['state'] = 'otp'
                     messages.success(request, "OTP sent to your email.")
                 else:
                     messages.error(request, "Incorrect email or role.")
@@ -238,13 +235,10 @@ def forgot_password(request):
             except Exception as e:
                 messages.error(request, f"Error occurred: {e}")
 
-        # State: OTP Verification
         elif request.session['state'] == 'otp':
             user_otp = request.POST.get('otp')
-            print("Entered OTP:", user_otp, "| Expected OTP:", request.session.get('sys_Otp'))
-
             if user_otp == str(request.session.get('sys_Otp')):
-                request.session['state'] = 'reset'  # Move to Reset State
+                request.session['state'] = 'reset'
                 messages.success(request, "OTP verified successfully.")
             else:
                 messages.error(request, "Invalid OTP. Please try again.")
@@ -253,17 +247,13 @@ def forgot_password(request):
             username_input = request.POST.get("username")
             new_password = request.POST.get('new_psd')
             confirm_password = request.POST.get('con_new_psd')
-
-            #print("Reset -> Username:", username_input, 
-             #     "| New Password:", new_password, "| Confirm Password:", confirm_password)
-
             if username_input == request.session.get('username'):
                 if new_password == confirm_password:
                     try:
                         user = User.objects.get(username=request.session['username'])
                         user.set_password(new_password)
                         user.save()
-                        request.session.flush() 
+                        request.session.flush()
                         messages.success(request, "Password reset successfully!")
                         return redirect('login')  
                     except Exception as e:
@@ -273,5 +263,18 @@ def forgot_password(request):
             else:
                 messages.error(request, "Username mismatch.")
 
-    #print("Session Data:", dict(request.session))  
     return render(request, "accounts/forgot_password.html")
+
+def resend_otp(request):
+    if request.method == "POST":
+        if request.session.get('state') == 'otp':
+            try:
+                new_otp = generate_otp()
+                request.session['sys_Otp'] = new_otp
+                send_otp_email(request, new_otp)
+                return JsonResponse({"success": True, "message": "OTP resent successfully."})
+            except Exception as e:
+                return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
+        else:
+            return JsonResponse({"success": False, "message": "Invalid state for resending OTP."})
+    return JsonResponse({"success": False, "message": "Invalid request method."})
